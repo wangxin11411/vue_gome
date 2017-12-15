@@ -1,0 +1,14 @@
+day one :
+1创建项目，
+2布局首页上中下三栏，使用主容器display:flex;flex-direction:column; 需要自适应的栏设置flex:1
+3创建底部导航对应的5个路由页面 <router-link v-bind:to="{name:'Category'}"></router-link>
+4消除滚动条 ::-webkit-scrollbar{width:0px;}
+
+day 2
+1页面顶部，display: flex; 自适应元素flex:1
+
+day3
+1 标签属性单项绑定 :name = "页面变量" 
+2 标签input双向绑定 v-model = "页面变量"
+3 页面数据渲染 {{页面变量}}
+4 方法绑定 v-on:click="页面方法"
