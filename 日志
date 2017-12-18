@@ -11,4 +11,12 @@ day3
 1 标签属性单项绑定 :name = "页面变量" 
 2 标签input双向绑定 v-model = "页面变量"
 3 页面数据渲染 {{页面变量}}
-4 方法绑定 v-on:click="页面方法"
+4 方法绑定 v-on:click="页面方法" 或者@click
+
+day4
+1创建工具类模块，在main.js中引入，并且绑定到Vue的原型中，工程即可正常使用 Vue.prototype.$tools = util 
+2异步请求 使用axios模块，支持promise
+3数组去重 es6  new Set([]) 返回是set对象，下一步转换数组格式处理 [...set]
+
+day5
+1 axios 不支持jsonp,单独加载一个vue-jsonp组件 vue.use()

@@ -33,13 +33,12 @@ export default {
   },
   methods: {
     goSearch (searchword) {
-      this.searchKeyWords = searchword;
-      if(this.searchKeyWords == ""){
+      searchword = this.searchKeyWords;
+      if(searchword == ""){
         searchword = this.defaultKeyWords
-        this.$router.push({name:"SearchListResult",query:{hdword:searchword}})
+        this.$router.push({name:"SearchListResult",query:{hdword:this.defaultKeyWords}})
       }else{
-        searchword = this.searchKeyWords
-        this.$router.push({name:"SearchListResult",query:{keyword:searchword}})
+        this.$router.push({name:"SearchListResult",query:{keyword:this.searchKeyWords}})
       }
     },
     historyClear(){

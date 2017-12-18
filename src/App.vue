@@ -67,7 +67,16 @@ body * {
 body {
   -webkit-text-size-adjust: 100%;
 }
-
--webkit-text-size-adjust: none; 
+.gome-icon-self{
+  display: inline-block;
+  vertical-align: middle;
+  height: 15px;
+  width: 30px;
+  margin-right: 2px;
+  margin-top: -2px;
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAAAkCAMAAAAKJxydAAAAdVBMVEUAAAD/Xl7/Zmb/aWn/XV3/Y2P/XFz/XV3/XV3/XFz/Xl7/XFz/XFz/XV3/XFz/XV3/XFz/ZWX/XV3/Xl7/kpL/XV3/XV3/XV3/bm7/XFz/XFz/XV3/Xl7/XFz/XV3/YGD/XV3/XV3/X1//Xl7/Xl7/Xl7/XFwi4JyEAAAAJnRSTlMAgBQFnRz0h3bnTfHQoe5wpg7eVAO6+80K+cFeerewKJfiQC5nPOUN6+4AAAFHSURBVEjHvdbtbsIgGIbh12qBVp2tg9KP1e+953+Ic1UxT4vJsM7rF23InUBCgEgrW/GTKqv0uVCzkZMnScO1JsUNjdCwImvgl55SGGOpklgtDHmVQsR0sRbf5MiKeAIzW1YPEsy3RMIHcibcS2wLEVFPPe8wz6+YxWWAiXLVMbxY3ZWXhOgwC9EbYSJijyhgIV1iswSbXqJtb59Ze3yQiAnELqGnfgEJwX7bkMTCowhLxDSUeBJJDyR0DkpvYgASKYOlP3GMwNElWhOdE/uZU/8m5C7+0144KW/Iac6JzvsTuBB/4vQJTr0EcImAY6anQD84ZhmAYzYQvBfJx9AqLFHwfo3m/BWaiAnt/ishFZDhiQFI7CSy3kQ2AxkkBsL3oklRe0/cLsRSqZxArlRJV1LmhFJ5cBeiNTSKsa94HIx/orzgofQDVydducEeo6AAAAAASUVORK5CYII=);
+  background-size:contain;
+  background-repeat: no-repeat;
+}
 
 </style>
