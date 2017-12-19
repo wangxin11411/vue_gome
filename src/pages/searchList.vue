@@ -3,7 +3,7 @@
     <header>
       <span class="cancle" @click="goback()">取消</span>
       <input type="text" :placeholder="$route.query.key" v-model="searchKeyWords">
-      <b v-on:click="goSearch()"></b>
+      <b v-on:click="goSearchBtn()"></b>
     </header>
     <dl class="reclist">
       <dt>热词推荐</dt>
@@ -14,8 +14,6 @@
       <dt><span class="historyClear" v-on:click="historyClear">清空</span>搜索历史</dt>
       <dd v-for="item in historyKeyWords" v-on:click='goSearch(item)' :data-keyword="item">{{item}}</dd>
     </dl>
-
-    
   </div>
 </template>
 
@@ -33,9 +31,10 @@ export default {
   },
   methods: {
     goSearch (searchword) {
-      searchword = this.searchKeyWords;
-      if(searchword == ""){
-        searchword = this.defaultKeyWords
+      this.$router.push({name:"SearchListResult",query:{keyword:searchword}})
+    },
+    goSearchBtn(){
+      if(this.searchKeyWords == ""){
         this.$router.push({name:"SearchListResult",query:{hdword:this.defaultKeyWords}})
       }else{
         this.$router.push({name:"SearchListResult",query:{keyword:this.searchKeyWords}})

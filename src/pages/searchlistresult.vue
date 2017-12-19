@@ -15,9 +15,9 @@
       </li>
       <li :class="s_self?'check':''" @click="changeSelf">自营</li><!--苏宁自营服务-->
       <li :class="s_rebate?'check':''" @click="changeRebate">返利</li><!--苏宁促销-->
-      <li>筛选</li>
+      <li @click="changeFilter">筛选</li>
     </ul>
-  
+    
     <ul class="item-lists-box">
       <li class="list" v-for="item in search_items">
         <img :src="item.pic">
@@ -28,6 +28,47 @@
         <p class="pinglun">{{item.extenalFileds.commentShow}}人评论</p>
       </li>
     </ul>
+
+    <div class="sidebar">
+      <transition name="fade" @touchmove.prevent>
+        <div class="menu-mask" v-show="isFilterShow" @click="closeFilter"></div>
+      </transition> 
+
+      <transition name="side">
+        <div class="menu-content" v-show="isFilterShow">
+          <div class="content" v-if="filterData">
+            
+            <dl class="filter-price">
+              <dt>价格区间</dt>
+              <dd><div v-for="item in filterData.hotPrices" :class="item.checked?'on':''" @click="checkPrice(item)">{{item.start}}-{{item.end}}<p>{{item.percent }}</p></div></dd>
+            </dl>
+
+            <dl class="filter-normal">
+              <dt>全部分类</dt>
+              <dd><div v-for="item in filterData.allCategories" :class="item.checked?'on':''" :data-cid="item.id" @click="checkFilterCat(item)">{{item.name}}</div></dd>
+            </dl>
+            
+            <dl class="filter-normal" v-for="filters in filterData.filters">
+              <dt @click="toggleFilter(filters)"><span class="check">{{checkValues[filters.fieldName]}}</span>{{filters.fieldNameDesc}}</dt>
+              <dd v-if="filters.fieldName == 'bnf'" class="filter-brand">
+                <span v-for="item in filters.values" :class="item.checked?'on':''" @click="checkFilter(item,filters.fieldName)"><img :src="'https://image.suning.cn/uimg/pcms/brandLogo/'+item.valueCode+'_150x60.jpg'"></span>
+              </dd>
+              <dd v-else v-show="!filters.isMultiSel"><div v-for="item in filters.values" :class="item.checked?'on':''" @click="checkFilter(item,filters.fieldName)">{{item.valueDesc}}</div></dd>
+            </dl>
+
+          </div>
+          <div class="footer">
+            <p class="border-1px"></p>
+
+            <div class="filter-exit">
+              <span class="filter-ok" @click="closeFilter">确定</span>
+              <span class="filter-reset">全部重选</span>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </div>
+
     <b @click="back">111</b>
   </div>
 </template>
@@ -49,6 +90,8 @@ ct=-1 全部
 
 sp= qdzx,djh,qg,tg,zj,fq,zxtc,mptm,lq
  */
+import sidebar from '../components/slider'
+
 export default {
   name: 'Index',
   data () {
@@ -60,7 +103,10 @@ export default {
       s_sort_val:"综合排序",
       s_sort_hide : true,
       s_self:false,
-      s_rebate:false
+      s_rebate:false,
+      isFilterShow:false,
+      filterData:null,
+      checkValues:{}
     }
   },
   methods: {
@@ -83,6 +129,32 @@ export default {
     changeRebate(){
       this.s_rebate = !this.s_rebate;
       this.getItem()
+    },
+    changeFilter(){
+      this.isFilterShow = true;
+      this.getFilterInfo()
+    },
+    checkFilter(o,key){
+      o.checked = !o.checked;
+      var _val = o.valueDesc+",";
+      if(o.checked){
+        if(!this.checkValues[key]) this.checkValues[key]= "";
+        this.checkValues[key] = this.checkValues[key]+_val;
+      }else{
+        this.checkValues[key] = this.checkValues[key].replace(_val,"")
+      }
+    },
+    checkPrice(o){
+      o.checked = !o.checked
+    },
+    checkFilterCat(o){
+      o.checked = !o.checked
+    },
+    closeFilter(){
+      this.isFilterShow = false;
+    },
+    toggleFilter(o){
+      o.isMultiSel = !o.isMultiSel
     },
     getItem(){
       var $that = this;
@@ -141,9 +213,40 @@ export default {
           $that.search_items = _temp
         })
     },
+    getFilterInfo(){
+      var $that = this;
+      if(this.filterData) return;
+      $that.$jsonp('https://search.suning.com/emall/mobile/getSelector.jsonp', {
+          cityId: '010',
+          keyword: $that.keyWord,
+          channel:"",
+          cp:"0",
+          ps:"10",
+          st:$that.s_sort,
+          set:5,
+          cf:"",
+          iv:"-1",
+          ci:"",
+          ct:$that.s_self?"2":"-1",
+          channelId:"WAP",
+          sp:$that.s_rebate?"qdzx,djh,qg,tg,zj,fq,zxtc,mptm,lq":"",
+          sg:"",
+          sc:0,
+          prune:"",
+          operate:0,
+          isAnalysised:1,
+          istongma:1,
+          v:99999999
+        }).then(json => {
+          $that.filterData = json
+        })
+    },
     back(){
       this.$router.go(-2)
     }
+  },
+  components:{
+    sidebar:sidebar
   },
   beforeCreate: function () {
     //beforeCreate 创建前状态===============》
@@ -181,6 +284,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+
 .item-facet-box {
   height: 40px;
   display: flex;
@@ -279,4 +383,298 @@ export default {
   line-height: 16px;
   margin-right: 5px;
 }
+/*filter*/
+.filter-price{
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.filter-price dt{
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.filter-price dd{
+  display: flex;
+  flex-direction: row;
+  justify-content:space-between;
+}
+.filter-price dd div{
+  width: 30%;
+  height: 40px;
+  padding: 5px 0;
+  line-height: 20px;
+  text-align: center;
+  background: #f1f1f1;
+  border-radius: 5px;
+}
+.filter-price dd p{
+  color: #999;
+}
+.filter-normal{
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.filter-normal dt{
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.filter-normal dt .check{
+  float: right;
+  width: 60%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: #ea5504;
+  text-align: right;
+}
+.filter-normal dd{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content:space-between;
+}
+.filter-normal dd div{
+  width: 30%;
+  text-align: center;
+  height: 30px;
+  line-height: 30px;
+  background: #f1f1f1;
+  margin-bottom: 10px;
+}
+.filter-normal div.on,.filter-price .on,.filter-price .on p{
+  background-color: #ea5504;
+  color: #fff;
+}
+.filter-brand span{
+  display: block;
+  width: 32%;
+  margin-bottom: 5px;
+}
+.filter-brand span img{
+  width: 100%;
+  border: 1px solid #e0e0e0;
+}
+.filter-brand .on img{
+  border: 1px solid #ea5504;
+}
+.filter-exit{
+  width: 100%;
+  line-height: 40px;
+}
+.filter-ok{
+  float: right;
+  height: 40px;
+  width: 120px;
+  background: #ea5504;
+  color: #fff;
+}
+.filter-reset{
+  float: right;
+  height: 40px;
+  width: 120px;
+  background: #f1f1f1;
+  border-left: 1px solid #e0e0e0;
+}
+/***/
+.sidebar .menu-mask {
+ position:fixed;
+ top:0;
+ left:0;
+ bottom:0;
+ right:0;
+ opacity:1;
+ z-index:10;
+ background:rgba(0,0,0,.5);
+ transfrom:translateZ(0)
+}
+.sidebar .menu-mask.fade-enter-to,.sidebar .menu-mask.fade-leave-to {
+ transition:opacity .3s
+}
+.sidebar .menu-mask.fade-enter,.sidebar .menu-mask.fade-leave-to {
+ opacity:0
+}
+.sidebar .menu-content {
+ position:fixed;
+ width:286px;
+ height:100%;
+ top:0;
+ right:0;
+ bottom:0;
+ z-index:11;
+ overflow-y:auto;
+ background:#fff;
+ -webkit-overflow-scrolling:touch
+}
+.sidebar .menu-content.side-enter-to,.sidebar .menu-content.side-leave-to {
+ transition:-webkit-transform .3s;
+ transition:transform .3s;
+ transition:transform .3s,-webkit-transform .3s
+}
+.sidebar .menu-content.side-enter,.sidebar .menu-content.side-leave-to {
+ -webkit-transform:translate3d(-286px,0,0);
+ transform:translate3d(286px,0,0)
+}
+.sidebar .menu-content .menu-userInfo {
+ box-sizing:border-box;
+ width:100%;
+ height:168px;
+ position:relative;
+ padding:50px 15px 15px
+}
+.sidebar .menu-content .menu-userInfo .avatar {
+ position:absolute;
+ bottom:50px;
+ left:15px;
+ border-radius:50%
+}
+.sidebar .menu-content .menu-userInfo .user-detail {
+ position:absolute;
+ bottom:20px;
+ left:15px;
+ font-size:0
+}
+.sidebar .menu-content .menu-userInfo .user-detail .name {
+ display:inline-block;
+ font-size:16px;
+ font-weight:500;
+ color:#fff;
+ vertical-align:middle;
+ max-width:130px;
+ text-overflow:ellipsis;
+ white-space:nowrap;
+ overflow:hidden
+}
+.sidebar .menu-content .menu-userInfo .user-detail .isvip {
+ width:14px;
+ height:14px;
+ vertical-align:middle;
+ margin-left:6px
+}
+.sidebar .menu-content .menu-userInfo .user-detail .progress {
+ font-size:8px;
+ padding:1px 4px;
+ border-radius:8px;
+ color:#fff;
+ font-weight:400;
+ border:1px solid #fff;
+ margin-left:6px;
+ vertical-align:middle
+}
+.sidebar .menu-content .menu-userInfo .sign {
+ display:inline-block;
+ height:14px;
+ line-height:14px;
+ position:absolute;
+ bottom:15px;
+ font-size:12px;
+ right:15px;
+ padding:4px 8px;
+ border:1px solid #e1e1e1;
+ border-radius:12px;
+ color:#fff
+}
+.sidebar .menu-content .menu-userInfo .sign:active {
+ background:rgba(0,0,0,.1)
+}
+.sidebar .menu-content .menu-userInfo .sign i {
+ height:14px;
+ margin-right:5px;
+ vertical-align:top
+}
+.sidebar .menu-content .content {
+ background:#fff;
+ display:block;
+ padding-bottom:40px
+}
+.sidebar .menu-content .footer {
+ background:red;
+ position:fixed;
+ transfrom:translateZ(0);
+ bottom:0;
+ height:40px;
+ width:286px;
+ font-size:0;
+ background:#fff
+}
+.sidebar .menu-content .footer .border-1px {
+ position:relative
+}
+.sidebar .menu-content .footer .border-1px:after {
+ display:block;
+ position:absolute;
+ left:0;
+ bottom:0;
+ width:100%;
+ border-top:1px solid rgba(7,17,27,.1);
+ content:" "
+}
+.sidebar .menu-content .footer div {
+ display:inline-block;
+ font-size:16px;
+ height:100%;
+ text-align:center
+}
+.sidebar .menu-content .footer div i {
+ color:#999;
+ font-size:18px;
+ vertical-align:middle
+}
+.sidebar .menu-content .footer div span {
+ font-size:16px;
+ vertical-align:middle
+}
+
+.sidebar .menu-content .footer div.nightmode {
+ width:40%;
+ line-height:40px
+}
+.sidebar .menu-content .footer div.setting {
+ width:30%;
+ line-height:40px
+}
+.split {
+ display:block;
+ border-width:1px;
+ border:none;
+ border-top-width:1px;
+ border-top-style:solid;
+ border-bottom-width:1px;
+ border-bottom-style:solid
+}
+.sidelist,.split {
+ width:100%;
+ box-sizing:border-box
+}
+.sidelist {
+ position:relative;
+ height:40px;
+ line-height:40px;
+ font-size:0;
+ padding:0 15px
+}
+.sidelist:active {
+ background:#d5d5d5
+}
+.sidelist .icon,.sidelist .title {
+ display:inline-block;
+ vertical-align:middle
+}
+.sidelist .icon {
+ font-size:16px;
+ margin-right:6px;
+ color:#9a9a9a
+}
+.sidelist .title {
+ font-size:14px;
+ color:#333
+}
+.sidelist .disc {
+ position:absolute;
+ right:15px;
+ font-weight:400;
+ top:50%;
+ -webkit-transform:translate3d(0,-50%,0);
+ transform:translate3d(0,-50%,0);
+ color:#9c9c9c;
+ font-size:10px
+}   
 </style>

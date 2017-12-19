@@ -15,7 +15,6 @@ Vue.prototype.$http = axios
 Vue.prototype.$tools = util
 
 Vue.use(VueJsonp)
-
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
