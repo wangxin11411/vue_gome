@@ -1,3 +1,6 @@
+项目使用组件包括
+vue全家桶的成员是：vue-cli,vuex,vue-router,vue-axios(vue2.0)
+第三方框架，vue-jsonp，vue-scroller
 day one :
 1创建项目，
 2布局首页上中下三栏，使用主容器display:flex;flex-direction:column; 需要自适应的栏设置flex:1
@@ -20,3 +23,8 @@ day4
 
 day5
 1 axios 不支持jsonp,单独加载一个vue-jsonp组件 vue.use()
+day6 7
+1搜索滑动组件，transition，阻止页面滚动方法@touchmove.prevent 未成功
+2价格筛选部分与下面的分类筛选有冲突，待解决
+3编程方式，操作数据，标签上的元素直接作为调用方法的参数传递，与dom编程有区别
+4下拉加载分页商品 vue-scroller 应该是根据容器高度有没有变化判断是否修改标识，如果延时1.5s之后容器没有变化则认为是没有商品

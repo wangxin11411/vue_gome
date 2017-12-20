@@ -1,34 +1,37 @@
 <template>
   <div class="gome-searchResult">
-    
-    <ul class="item-facet-box">
-      <li>
-        <dl class="facet-sort">
-          <dt @click="s_sort_hide = false">{{s_sort_val}}</dt>
-          <dd v-if="!s_sort_hide">
-            <div v-if="s_sort != '0'" @click="changeSort('0','综合排序')">综合排序</div>
-            <div v-if="s_sort != '9'" @click="changeSort('9','价格从低到高')">价格从低到高</div>
-            <div v-if="s_sort != '10'" @click="changeSort('10','价格从高到低')">价格从高到低</div>
-            <div v-if="s_sort != '8'" @click="changeSort('8','销量排序')">销量排序</div>
-          </dd>
-        </dl>
-      </li>
-      <li :class="s_self?'check':''" @click="changeSelf">自营</li><!--苏宁自营服务-->
-      <li :class="s_rebate?'check':''" @click="changeRebate">返利</li><!--苏宁促销-->
-      <li @click="changeFilter">筛选</li>
-    </ul>
-    
-    <ul class="item-lists-box">
-      <li class="list" v-for="item in search_items">
-        <img :src="item.pic">
-        <p class="name"><i v-if="item.suningSale" class="gome-icon-self"></i>{{item.catentdesc}}</p>
-        <p class="salepoint"><span v-for="point in item.extenalFileds.appAttrTitle">{{point}}</span></p>
-        <p class="price">¥{{item.price}}</p>
-        <p class="propm"><span v-for="prom in item.promotionList">{{prom.simple}}</span><span>{{item.promotionLable}}</span></p>
-        <p class="pinglun">{{item.extenalFileds.commentShow}}人评论</p>
-      </li>
-    </ul>
-
+    <header>
+      <router-link class="home" :to="{name:'Index'}">首页</router-link>
+      <router-link class="label" :to="{name:'SearchList'}">{{$route.query.keyword}}</router-link>
+    </header>
+    <scroller :on-infinite="infinite" ref="myscroller">
+      <ul class="item-facet-box">
+        <li>
+          <dl class="facet-sort">
+            <dt @click="s_sort_hide = false">{{s_sort_val}}</dt>
+            <dd v-if="!s_sort_hide">
+              <div v-if="s_sort != '0'" @click="changeSort('0','综合排序')">综合排序</div>
+              <div v-if="s_sort != '9'" @click="changeSort('9','价格从低到高')">价格从低到高</div>
+              <div v-if="s_sort != '10'" @click="changeSort('10','价格从高到低')">价格从高到低</div>
+              <div v-if="s_sort != '8'" @click="changeSort('8','销量排序')">销量排序</div>
+            </dd>
+          </dl>
+        </li>
+        <li :class="s_self?'check':''" @click="changeSelf">自营</li><!--苏宁自营服务-->
+        <li :class="s_rebate?'check':''" @click="changeRebate">返利</li><!--苏宁促销-->
+        <li @click="changeFilter">筛选</li>
+      </ul>
+      <ul class="item-lists-box">
+        <li class="list" v-for="item in search_items">
+          <img :src="item.pic">
+          <p class="name"><i v-if="item.suningSale" class="gome-icon-self"></i>{{item.catentdesc}}</p>
+          <p class="salepoint"><span v-for="point in item.extenalFileds.appAttrTitle">{{point}}</span></p>
+          <p class="price">¥{{item.price}}</p>
+          <p class="propm"><span v-for="prom in item.promotionList">{{prom.simple}}</span><span>{{item.promotionLable}}</span></p>
+          <p class="pinglun">{{item.extenalFileds.commentShow}}人评论</p>
+        </li>
+      </ul>
+    </scroller>
     <div class="sidebar">
       <transition name="fade" @touchmove.prevent>
         <div class="menu-mask" v-show="isFilterShow" @click="closeFilter"></div>
@@ -37,18 +40,18 @@
       <transition name="side">
         <div class="menu-content" v-show="isFilterShow">
           <div class="content" v-if="filterData">
-            
-            <dl class="filter-price">
-              <dt>价格区间</dt>
-              <dd><div v-for="item in filterData.hotPrices" :class="item.checked?'on':''" @click="checkPrice(item)">{{item.start}}-{{item.end}}<p>{{item.percent }}</p></div></dd>
-            </dl>
+
+            <!-- <dl class="filter-price">
+              <dt><span class="check">{{checkValues.prices}}</span>价格区间</dt>
+              <dd><div v-for="item in filterData.hotPrices" :class="item.checked?'on':''" @click="checkFilters(item,'prices')">{{item.start}}-{{item.end}}<br />{{item.percent}}</div></dd>
+            </dl> -->
 
             <dl class="filter-normal">
               <dt>全部分类</dt>
-              <dd><div v-for="item in filterData.allCategories" :class="item.checked?'on':''" :data-cid="item.id" @click="checkFilterCat(item)">{{item.name}}</div></dd>
+              <dd><div v-for="item in filterData.allCategories" :class="item.checked?'on':''" @click="checkFilterCat(item)">{{item.name}}</div></dd>
             </dl>
             
-            <dl class="filter-normal" v-for="filters in filterData.filters">
+            <dl class="filter-normal" v-for="filters in filterData.filters" v-if="filters.fieldName != 'price'">
               <dt @click="toggleFilter(filters)"><span class="check">{{checkValues[filters.fieldName]}}</span>{{filters.fieldNameDesc}}</dt>
               <dd v-if="filters.fieldName == 'bnf'" class="filter-brand">
                 <span v-for="item in filters.values" :class="item.checked?'on':''" @click="checkFilter(item,filters.fieldName)"><img :src="'https://image.suning.cn/uimg/pcms/brandLogo/'+item.valueCode+'_150x60.jpg'"></span>
@@ -61,15 +64,13 @@
             <p class="border-1px"></p>
 
             <div class="filter-exit">
-              <span class="filter-ok" @click="closeFilter">确定</span>
+              <span class="filter-ok" @click="getItemByFilter">确定</span>
               <span class="filter-reset">全部重选</span>
             </div>
           </div>
         </div>
       </transition>
     </div>
-
-    <b @click="back">111</b>
   </div>
 </template>
 
@@ -88,9 +89,16 @@ ct=2 自营服务
 
 ct=-1 全部
 
+cf 品牌 分类 价格（1565_5198）
+
+ci 分类
+
 sp= qdzx,djh,qg,tg,zj,fq,zxtc,mptm,lq
  */
-import sidebar from '../components/slider'
+
+import Vue from 'vue'
+import VueScroller from 'vue-scroller'
+Vue.use(VueScroller)
 
 export default {
   name: 'Index',
@@ -104,9 +112,13 @@ export default {
       s_sort_hide : true,
       s_self:false,
       s_rebate:false,
+      s_pagenumber:-1,
+      s_filter:[],
+      s_filter_c:"",
       isFilterShow:false,
       filterData:null,
-      checkValues:{}
+      checkValues:{},
+      noData:""
     }
   },
   methods: {
@@ -140,15 +152,17 @@ export default {
       if(o.checked){
         if(!this.checkValues[key]) this.checkValues[key]= "";
         this.checkValues[key] = this.checkValues[key]+_val;
+        this.s_filter.push(o.value)
       }else{
         this.checkValues[key] = this.checkValues[key].replace(_val,"")
+        this.s_filter.remove(o.value)
       }
     },
-    checkPrice(o){
-      o.checked = !o.checked
-    },
     checkFilterCat(o){
-      o.checked = !o.checked
+      o.checked = !o.checked;
+      this.s_filter_c = o.id;
+      this.filterData= null;
+      this.getFilterInfo()
     },
     closeFilter(){
       this.isFilterShow = false;
@@ -157,18 +171,19 @@ export default {
       o.isMultiSel = !o.isMultiSel
     },
     getItem(){
+      console.log("获取商品")
       var $that = this;
       $that.$jsonp('https://search.suning.com/emall/mobile/wap/clientSearch.jsonp', {
           cityId: '010',
           keyword: $that.keyWord,
           channel:"",
-          cp:"0",
+          cp:$that.s_pagenumber,
           ps:"10",
           st:$that.s_sort,
           set:5,
-          cf:"",
+          cf:$that.s_filter.join(","),
           iv:"-1",
-          ci:"",
+          ci:$that.s_filter_c,
           ct:$that.s_self?"2":"-1",
           channelId:"WAP",
           sp:$that.s_rebate?"qdzx,djh,qg,tg,zj,fq,zxtc,mptm,lq":"",
@@ -180,8 +195,15 @@ export default {
           istongma:1,
           v:99999999
         }).then(json => {
+          if(json.goods.length == 0) return;
           $that.getItemStaus(json.goods)
         })
+    },
+    getItemByFilter(){
+      this.search_items = [];
+      this.s_pagenumber = -1;
+      //this.getItem()
+      this.closeFilter()
     },
     getItemStaus(data){
       var itemId = []
@@ -210,7 +232,8 @@ export default {
             _temp[i].promotionLable = json.rs[i].promotionLable
             itemId.push("000000000"+_temp[i].catentryId+"_")
           }
-          $that.search_items = _temp
+          $that.search_items = $that.search_items.concat(_temp)
+          
         })
     },
     getFilterInfo(){
@@ -224,9 +247,9 @@ export default {
           ps:"10",
           st:$that.s_sort,
           set:5,
-          cf:"",
+          cf:$that.s_filter.join(","),
           iv:"-1",
-          ci:"",
+          ci:$that.s_filter_c,
           ct:$that.s_self?"2":"-1",
           channelId:"WAP",
           sp:$that.s_rebate?"qdzx,djh,qg,tg,zj,fq,zxtc,mptm,lq":"",
@@ -243,13 +266,37 @@ export default {
     },
     back(){
       this.$router.go(-2)
+    },
+    infinite() {
+      if(this.noData==""){
+         setTimeout(() => {
+          this.s_pagenumber+=1;
+          this.getItem();
+          this.$refs.myscroller.finishInfinite(2);
+         })
+         return;
+      }
+      var self = this;
+      setTimeout(() => {
+        self.noData = "没有更多数据"
+        self.$refs.myscroller.resize();
+      }, 1500)
+
+    },
+    refresh() {
+      console.log('refresh')
+       
     }
   },
-  components:{
-    sidebar:sidebar
-  },
+  components:{},
   beforeCreate: function () {
     //beforeCreate 创建前状态===============》
+    Array.prototype.remove = function(val) {
+      var index = this.indexOf(val);
+      if (index > -1) {
+        this.splice(index, 1);
+      }
+    };
   },
   created: function () {
       //创建完毕状态===============》
@@ -258,14 +305,14 @@ export default {
         this.setHistory(this.$route.query.keyword)
         this.keyWord = this.$route.query.keyword
       }
-      this.getItem()
+      
   },
   beforeMount: function () {
       //beforeMount 挂载前状态===============》
   },
   mounted: function () {
       //mounted 挂载结束状态===============》
-      
+      //this.getItem()
   },
   beforeUpdate: function () {
       //beforeUpdate 更新前状态===============》
@@ -284,7 +331,39 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-
+header{
+  width:100%;
+  height:50px;
+  background:#c00;
+  display: flex;
+  flex-direction: row;
+  align-items:center;
+  background-color: #f6f6f6;
+}
+header .label{
+  display: block;
+  background-color: #e6e6e6;
+  height: 30px;
+  flex:1;
+  width: 100%;
+  margin: 0 15px 0 0;
+  border-radius: 15px;
+  text-indent: 10px;
+  line-height: 30px;
+  font-size: 12px;
+  color: #999;
+}
+header .home{
+  display: block;
+  width: 40px;
+  height: 30px;
+  font-style: normal;
+  line-height: 30px;
+  text-align: center;
+  font-size: 14px;
+  color: #999;
+}
+/**/
 .item-facet-box {
   height: 40px;
   display: flex;
@@ -676,5 +755,8 @@ export default {
  transform:translate3d(0,-50%,0);
  color:#9c9c9c;
  font-size:10px
-}   
+}
+._v-container{
+  top: 50px;
+}
 </style>
